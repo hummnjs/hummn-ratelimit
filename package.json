@@ -2,11 +2,36 @@
   "name": "hummn",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "build": "bun run ./build/build.ts && tsc --emitDeclarationOnly --outDir dist",
+    "prepublishOnly": "bun run build"
+  },
+  "exports": {
+    "./bun": {
+      "types": "./dist/bun.d.ts",
+      "bun": "./dist/bun.js",
+      "default": "./dist/bun.js"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "import": "./dist/node.js",
+      "require": "./dist/node.cjs"
+    },
+    ".": {
+      "types": "./dist/bun.d.ts",
+      "import": "./dist/bun.js",
+      "require": "./dist/bun.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
     "@biomejs/biome": "2.2.5",
     "@redis/client": "^5.8.3",
     "@types/bun": "latest",
     "@types/ms": "^2.1.0",
+    "esbuild": "^0.25.10",
     "ultracite": "5.6.2"
   },
   "peerDependencies": {
