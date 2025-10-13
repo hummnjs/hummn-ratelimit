@@ -105,32 +105,3 @@ export type Geo = {
   region?: string;
   ip?: string;
 };
-
-/**
- * @example
- * import { HummnRatelimit } from '@hummn/ratelimit/node';
- * import { createClient } from 'redis';
- * import { HummnRatelimit, Redis } from '@hummn/ratelimit/serverless'; // upstash/redis
- * import { HummnRatelimit } from '@hummn/ratelimit/bun'; // bun redis
- * import { HummnRatelimit } from '@hummn/ratelimit/cloudflare'; // cloudflare kv
- *
- * const limiter = new HummnRatelimit({
- *   limiter: Ratelimiter.fixedWindow({ duration: '10s', limit: 10 }),
- *   redis: {url: 'redis://localhost:6379'},
- *   prefix: "@hummn/ratelimit",
- *   timeout: 5000,
- *   enableProtection: false,
- *   denyListThreshold: 100
- * })
- *
- * const identifier = 'user123';
- * const { success } = await limiter.limit(identifier)
- *
- * if(!success) {
- *   throw new Error('Rate limit exceeded')
- * }
- *
- * await doSomething()
- *
- * return 'Welcome, user!'
- */
