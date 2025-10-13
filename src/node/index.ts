@@ -1,5 +1,6 @@
 import {
   createClient,
+  type RedisArgument,
   type RedisClientOptions,
   type RedisClientType,
   type RedisFunctions,
@@ -44,13 +45,13 @@ export type HummnRatelimitConfig = {
 };
 
 /**
- * Ratelimiter using bun redis from https://bun.com/docs/api/redis
+ * Ratelimiter using node-redis from https://www.npmjs.com/package/redis
  *
  * @example
  * ```ts
- * import { redis } from "bun";
+ * import { createClient } from "redis";
  * const { limit } = new HummnRatelimit({
- *    redis: redis,
+ *    redis: createClient({ url: "redis://localhost:6379" }),
  *    limiter: Ratelimit.fixedWindow(
  *      "30 m", // interval of 30 minutes
  *      10,     // Allow 10 requests per window of 30 minutes
@@ -84,7 +85,7 @@ export class HummnRatelimit extends RateLimit<RedisClient> {
     });
 
     this.client = client;
-    // this.connect();
+    this.connect();
   }
 
   /**
@@ -92,6 +93,10 @@ export class HummnRatelimit extends RateLimit<RedisClient> {
    * @returns {Promise<RedisClient>}
    */
   protected async connect(): Promise<RedisClient> {
+    if (this.client.isOpen) {
+      return this.client;
+    }
+
     const client = await this.client.connect();
     this.ctx.status = "connected";
     return client;
@@ -119,10 +124,6 @@ export class HummnRatelimit extends RateLimit<RedisClient> {
     const windowDuration = ms(window);
     return {
       async limit(ctx, identifier, rate) {
-        if (!ctx.status || ctx.status !== "connected") {
-          await ctx.redis.connect();
-        }
-
         const bucket = Math.floor(Date.now() / windowDuration);
         const key = [identifier, bucket].join(":");
 
@@ -131,8 +132,8 @@ export class HummnRatelimit extends RateLimit<RedisClient> {
         const usedTokensAfterUpdate = (await HummnRatelimit.safeEval(
           ctx.redis,
           SCRIPTS.default.fixedWindow.limit,
-          "1",
-          key,
+
+          [key],
           String(windowDuration),
           String(incrementBy)
         )) as number;
@@ -152,19 +153,13 @@ export class HummnRatelimit extends RateLimit<RedisClient> {
         };
       },
       async getRemaining(ctx, identifier) {
-        if (!ctx.status || ctx.status !== "connected") {
-          await ctx.redis.connect();
-        }
-
         const bucket = Math.floor(Date.now() / windowDuration);
         const key = [identifier, bucket].join(":");
 
         const usedTokens = (await HummnRatelimit.safeEval(
           ctx.redis,
           SCRIPTS.default.fixedWindow.getRemaining,
-          "1",
-          key,
-          "null"
+          [key]
         )) as number | string | undefined;
 
         return {
@@ -173,12 +168,9 @@ export class HummnRatelimit extends RateLimit<RedisClient> {
         };
       },
       async resetTokens(ctx, identifier) {
-        if (!ctx.status || ctx.status !== "connected") {
-          await ctx.redis.connect();
-        }
         const pattern = [identifier, "*"].join(":");
 
-        await HummnRatelimit.safeEval(ctx.redis, RESET_SCRIPT, "1", pattern);
+        await HummnRatelimit.safeEval(ctx.redis, RESET_SCRIPT, [pattern]);
       },
     };
   }
@@ -218,9 +210,7 @@ export class HummnRatelimit extends RateLimit<RedisClient> {
         const remaining = (await HummnRatelimit.safeEval(
           ctx.redis,
           SCRIPTS.default.slidingWindow.limit,
-          "2",
-          currentKey,
-          previousKey,
+          [currentKey, previousKey],
           String(tokens),
           String(now),
           String(windowSize),
@@ -240,10 +230,6 @@ export class HummnRatelimit extends RateLimit<RedisClient> {
         };
       },
       async getRemaining(ctx, identifier) {
-        if (!ctx.status || ctx.status !== "connected") {
-          await ctx.redis.connect();
-        }
-
         const now = Date.now();
         const currentWindow = Math.floor(now / windowSize);
         const currentKey = [identifier, currentWindow].join(":");
@@ -253,9 +239,7 @@ export class HummnRatelimit extends RateLimit<RedisClient> {
         const usedTokens = (await HummnRatelimit.safeEval(
           ctx.redis,
           SCRIPTS.default.slidingWindow.getRemaining,
-          "2",
-          currentKey,
-          previousKey,
+          [currentKey, previousKey],
           String(now),
           String(windowSize)
         )) as number | string | undefined;
@@ -266,13 +250,9 @@ export class HummnRatelimit extends RateLimit<RedisClient> {
         };
       },
       async resetTokens(ctx, identifier) {
-        if (!ctx.status || ctx.status !== "connected") {
-          await ctx.redis.connect();
-        }
-
         const pattern = [identifier, "*"].join(":");
 
-        await HummnRatelimit.safeEval(ctx.redis, RESET_SCRIPT, "1", pattern);
+        await HummnRatelimit.safeEval(ctx.redis, RESET_SCRIPT, [pattern]);
       },
     };
   }
@@ -298,10 +278,6 @@ export class HummnRatelimit extends RateLimit<RedisClient> {
     const intervalDuration = ms(interval);
     return {
       async limit(ctx, identifier, rate) {
-        if (!ctx.status || ctx.status !== "connected") {
-          await ctx.redis.connect();
-        }
-
         const now = Date.now();
 
         const incrementBy = rate ? Math.max(1, rate) : 1;
@@ -309,8 +285,8 @@ export class HummnRatelimit extends RateLimit<RedisClient> {
         const [remaining, reset] = (await HummnRatelimit.safeEval(
           ctx.redis,
           SCRIPTS.default.tokenBucket.limit,
-          "1",
-          identifier,
+
+          [identifier],
           String(maxTokens),
           String(intervalDuration),
           String(refillRate),
@@ -329,14 +305,11 @@ export class HummnRatelimit extends RateLimit<RedisClient> {
         };
       },
       async getRemaining(ctx, identifier) {
-        if (!ctx.status || ctx.status !== "connected") {
-          await ctx.redis.connect();
-        }
         const [remainingTokens, refilledAt] = (await HummnRatelimit.safeEval(
           ctx.redis,
           SCRIPTS.default.tokenBucket.getRemaining,
-          "1",
-          identifier,
+
+          [identifier],
           String(maxTokens)
         )) as [number | string | undefined, number | string | undefined];
 
@@ -353,12 +326,9 @@ export class HummnRatelimit extends RateLimit<RedisClient> {
         };
       },
       async resetTokens(ctx, identifier) {
-        if (!ctx.status || ctx.status !== "connected") {
-          await ctx.redis.connect();
-        }
         const pattern = [identifier, "*"].join(":");
 
-        await HummnRatelimit.safeEval(ctx.redis, RESET_SCRIPT, "1", pattern);
+        await HummnRatelimit.safeEval(ctx.redis, RESET_SCRIPT, [pattern]);
       },
     };
   }
@@ -376,10 +346,12 @@ export class HummnRatelimit extends RateLimit<RedisClient> {
   protected static async safeEval(
     redis: RedisClient,
     script: ScriptInfo,
-    ...args: string[]
+    keys: string[],
+    ...args: RedisArgument[]
   ) {
     try {
       return await redis.evalSha(script.hash, {
+        keys,
         arguments: args,
       });
     } catch (error) {

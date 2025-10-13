@@ -124,8 +124,7 @@ export class HummnRatelimit extends RateLimit<RedisClient> {
           ctx.redis,
           SCRIPTS.default.fixedWindow.getRemaining,
           "1",
-          key,
-          "null"
+          key
         )) as number | string | undefined;
 
         return {
