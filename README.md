@@ -53,31 +53,35 @@ docker run -d --name hummn-with-redis -p 6379:6379 redis:latest
 
 #### Bun
 ```ts
-import { HummnRatelimit } from "@hummn/ratelimit"; // for deno: see above
-import { RedisClient } from "bun";
+import { HummnRatelimit } from "@hummn/ratelimit";
+import { RedisClient, type BunRequest } from "bun";
 
-// Create a new ratelimiter, that allows 10 requests per 10 seconds
 const ratelimit = new HummnRatelimit({
-  redis: new RedisClient(), // Bun can infer the url from env.REDIS_URL, env.VALKEY_URL or uses the default redis://localhost:6379
-  limiter: Ratelimit.slidingWindow(10, "10 s"),
-  /**
-   * Optional prefix for the keys used in redis. This is useful if you want to share a redis
-   * instance with other applications and want to avoid key collisions. The default prefix is
-   * "@hummn/ratelimit"
-   */
+  redis: new RedisClient('redis://localhost:6379'),
+  // fixedWindow and slidingWindow also supported.
+  limiter: Ratelimit.tokenBucket(10, "20 s", 100), 
   prefix: "@hummn/ratelimit",
 });
 
-// Use a constant string to limit all requests with a single ratelimit
-// Or use a userID, apiKey or ip address for individual limits.
-const identifier = "api";
-const { success } = await ratelimit.limit(identifier);
-
-if (!success) {
-  return "Unable to process at this time";
-}
-runSomeFunction();
-return "Here you go!";
+Bun.serve({
+  routes: {
+    "/orgs/:orgId/repos/:repoId/settings": (
+      req: BunRequest<"/orgs/:orgId/repos/:repoId/settings">,
+    ) => {
+      const { orgId, repoId } = req.params;
+      // Use a constant string to limit all requests with a single ratelimit
+      // Or use a userID, apiKey or ip address for individual limits.
+      const identifier = `organization.${orgId}`;
+      const { success } = await ratelimit.limit(identifier);
+      if (!success) {
+        // Set Headers
+        return new Response("Woah! please slow down...", {status: 429})
+      }
+          
+      return Response.json({ orgId, repoId });
+    },
+  },
+});
 ```
 
 #### Node
@@ -87,29 +91,33 @@ return "Here you go!";
 ```ts
 import { HummnRatelimit } from "@hummn/ratelimit"; // for deno: see above
 import { createClient } from "@redis/client";
+import { Hono } from 'hono'
 
-// Create a new ratelimiter, that allows 10 requests per 10 seconds
+const app = new Hono();
+
 const ratelimit = new HummnRatelimit({
   redis: createClient({url: 'redis://localhost:6379'}),
   limiter: Ratelimit.slidingWindow(10, "10 s"),
-  /**
-   * Optional prefix for the keys used in redis. This is useful if you want to share a redis
-   * instance with other applications and want to avoid key collisions. The default prefix is
-   * "@hummn/ratelimit"
-   */
   prefix: "@hummn/ratelimit",
 });
 
-// Use a constant string to limit all requests with a single ratelimit
-// Or use a userID, apiKey or ip address for individual limits.
-const identifier = "api";
-const { success } = await ratelimit.limit(identifier);
+const ratelimitMiddleware = () => {
+  return createMiddleware(async (c, next) => {
+    const userId = c.get('userId');
+    const path = c.req.path;
+    const identifier = `user.${userId}.${path}`
+    const { success } = await ratelimit.limit(identifier);
+    if(!success) {
+      // Set Headers
+      return c.json({message: 'Woah!!, please slow down...'}, 429)
+    }
 
-if (!success) {
-  return "Unable to process at this time";
+    await next()
+  })
 }
-runSomeFunction();
-return "Here you go!";
+
+app.use(ratelimitMiddleware())
+
 ```
 
 
