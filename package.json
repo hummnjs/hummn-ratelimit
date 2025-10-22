@@ -1,24 +1,37 @@
 {
-  "name": "hummn",
+  "name": "@hummn/ratelimit",
   "module": "index.ts",
   "type": "module",
+  "version": "0.1.0-beta.6",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "bun run ./build/build.ts && tsc --emitDeclarationOnly --outDir dist",
     "prepublishOnly": "bun run build"
   },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hummnjs/hummn-ratelimit"
+  },
+  "author": {
+    "name": "Simeon Akpanudo",
+    "url": "https://x.com/cmiondotdev"
+  },
   "exports": {
     "./bun": {
-      "types": "./dist/bun.d.ts",
+      "types": "./dist/bun/index.d.ts",
       "import": "./dist/bun.js",
       "default": "./dist/bun.js"
     },
     "./node": {
-      "types": "./dist/node.d.ts",
+      "types": "./dist/node/index.d.ts",
       "import": "./dist/node.js",
       "require": "./dist/node.cjs"
     },
     ".": {
-      "types": "./dist/bun.d.ts",
+      "types": "./dist/bun/index.d.ts",
       "import": "./dist/bun.js",
       "default": "./dist/bun.js"
     }

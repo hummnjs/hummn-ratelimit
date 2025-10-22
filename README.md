@@ -123,7 +123,7 @@ app.use(ratelimitMiddleware())
 
 For more information on getting started, you can refer to [our documentation](https://hummn.dev/docs/ratelimit/gettingstarted).
 
-[Here's a complete Hono example](https://github.com/cmion/ratelimit/tree/main/examples/hono)
+[Here's a complete Hono example](https://github.com/hummnjs/ratelimit/tree/main/examples/hono)
 
 ## Documentation
 
