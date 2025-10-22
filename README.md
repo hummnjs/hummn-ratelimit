@@ -133,4 +133,23 @@ See [the documentation](https://hummn.dev/docs/ratelimit/overview) for more info
 
 
 ### Running tests
-Coming soon
+
+This library uses Bun's built-in test runner. To run the tests:
+
+```bash
+# Install dependencies
+bun install
+
+# Make sure Redis is running (e.g., using Docker)
+docker run -d --name redis-test -p 6379:6379 redis:latest
+
+# Run tests
+bun test
+```
+
+The test suite covers:
+- All three rate limiting algorithms (Fixed Window, Sliding Window, Token Bucket)
+- Core methods: `limit()`, `getRemaining()`, `resetUsedTokens()`, `blockUntilReady()`
+- Custom rate parameters
+- Timeout handling
+- Edge cases and concurrent requests
