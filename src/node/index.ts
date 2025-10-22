@@ -356,7 +356,11 @@ export class HummnRatelimit extends RateLimit<RedisClient> {
       });
     } catch (error) {
       if (`${error}`.toLowerCase().includes("noscript")) {
-        return await redis.scriptLoad(script.script);
+        await redis.scriptLoad(script.script);
+        return await redis.evalSha(script.hash, {
+          keys,
+          arguments: args,
+        });
       }
       throw error;
     }
