@@ -153,3 +153,5 @@ The test suite covers:
 - Custom rate parameters
 - Timeout handling
 - Edge cases and concurrent requests
+- Both Bun and Node.js Redis implementations
+- Connection management
