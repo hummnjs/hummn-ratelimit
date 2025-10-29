@@ -1,10 +1,10 @@
 import { createClient } from "@redis/client";
-import { HummnRatelimit } from "../src/node";
+import { Ratelimit } from "../src/node";
 
 async function main() {
-  const l = new HummnRatelimit({
-    // limiter: HummnRatelimit.fixedWindow(60, "1m"),
-    limiter: HummnRatelimit.tokenBucket(2, "1m", 10),
+  const l = new Ratelimit({
+    // limiter: Ratelimit.fixedWindow(60, "1m"),
+    limiter: Ratelimit.tokenBucket(2, "1m", 10),
     redis: createClient(),
   });
 

@@ -36,7 +36,7 @@ export type RatelimitConfig<R> = {
   timeout?: number;
 };
 
-export abstract class RateLimit<R> {
+export abstract class BaseRatelimit<R> {
   protected readonly limiter: Algorithm<R>;
 
   protected readonly ctx: Context<R>;

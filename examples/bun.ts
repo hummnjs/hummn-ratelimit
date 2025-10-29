@@ -1,9 +1,9 @@
 import { RedisClient } from "bun";
-import { HummnRatelimit } from "../src/bun";
+import { Ratelimit } from "../src/bun";
 
 async function main() {
-  const l = new HummnRatelimit({
-    limiter: HummnRatelimit.tokenBucket(2, "1m", 10),
+  const l = new Ratelimit({
+    limiter: Ratelimit.tokenBucket(2, "1m", 10),
     redis: new RedisClient(),
   });
 

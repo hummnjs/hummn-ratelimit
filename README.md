@@ -1,4 +1,4 @@
-# Hummn Rate Limit
+# Hummn (pronouced _Humming_) Rate Limit
 
 [![npm (scoped)](https://img.shields.io/npm/v/@hummn/ratelimit)](https://www.npmjs.com/package/@hummn/ratelimit)
 
@@ -37,7 +37,7 @@ npm install @hummn/ratelimit @redis/client
 #### Deno
 
 ```ts
-import { HummnRatelimit } from "https://cdn.skypack.dev/@hummn/ratelimit@latest";
+import { Ratelimit } from "https://cdn.skypack.dev/@hummn/ratelimit@latest";
 ```
 
 ### Create a database
@@ -53,10 +53,10 @@ docker run -d --name hummn-with-redis -p 6379:6379 redis:latest
 
 #### Bun
 ```ts
-import { HummnRatelimit } from "@hummn/ratelimit";
+import { Ratelimit } from "@hummn/ratelimit";
 import { RedisClient, type BunRequest } from "bun";
 
-const ratelimit = new HummnRatelimit({
+const ratelimit = new Ratelimit({
   redis: new RedisClient('redis://localhost:6379'),
   // fixedWindow and slidingWindow also supported.
   limiter: Ratelimit.tokenBucket(10, "20 s", 100),
@@ -89,13 +89,13 @@ Bun.serve({
 > Make sure to install the required dependencies. `npm install @redis/client` or `npm install redis`
 
 ```ts
-import { HummnRatelimit } from "@hummn/ratelimit"; // for deno: see above
+import { Ratelimit } from "@hummn/ratelimit"; // for deno: see above
 import { createClient } from "@redis/client";
 import { Hono } from 'hono'
 
 const app = new Hono();
 
-const ratelimit = new HummnRatelimit({
+const ratelimit = new Ratelimit({
   redis: createClient({url: 'redis://localhost:6379'}),
   limiter: Ratelimit.slidingWindow(10, "10 s"),
   prefix: "@hummn/ratelimit",
