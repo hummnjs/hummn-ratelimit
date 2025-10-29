@@ -23,17 +23,7 @@ const build = async () => {
           target: 'esnext',
           format: 'esm',
           platform: 'node',
-          external: ["redis", "@redis/client"],
-      }),
-      Esbuild({
-          entryPoints: ['src/node/index.ts'],
-          outfile: 'dist/node.cjs',
-          minify: true,
-          bundle: true,
-          target: 'esnext',
-          format: 'cjs',
-          platform: 'node',
-          external: ["redis", "@redis/client"],
+          // external: ["redis", "@redis/client"],
       }),
        $`tsc`
     ])
