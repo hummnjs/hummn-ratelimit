@@ -1,5 +1,4 @@
-import { $ } from "bun";
-import { build as Esbuild } from 'esbuild';
+
 
 const build = async () => {
     await Promise.all([
@@ -9,23 +8,24 @@ const build = async () => {
         outdir: './dist',
         minify: true,
         splitting: true,
-        sourcemap: false,
+        sourcemap: true,
         tsconfig: './tsconfig.json',
         format: 'esm',
         target: 'bun',
-
+        packages: 'external'
       }),
-      Esbuild({
-          entryPoints: ['src/node/index.ts'],
-          outfile: 'dist/node.js',
-          minify: true,
-          bundle: true,
-          target: 'esnext',
-          format: 'esm',
-          platform: 'node',
-          // external: ["redis", "@redis/client"],
-      }),
-       $`tsc`
+      Bun.build({
+        entrypoints: ['./src/node/index.ts'],
+        naming: "[dir]/node.[ext]",
+        outdir: './dist',
+        minify: true,
+        splitting: true,
+        sourcemap: true,
+        tsconfig: './tsconfig.json',
+        format: 'esm',
+        target: 'node',
+        packages: 'external'
+      })
     ])
 };
 

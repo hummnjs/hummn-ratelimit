@@ -5,7 +5,7 @@
 Hummn Rate Limit is designed to help you limit the number of requests your application receives.
 
 It is useful for:
-- Bun: It has first-class support for [Bun Redis (Released in v1.2.3)](https://bun.com/docs/api/redis)
+- Bun: It has first-class support for [Bun Redis (Released in v1.3.0)](https://bun.com/docs/api/redis)
 - Hono: Can be used with Hono in a node/bun environment. For serveless functions, we recommend using [@upstash/ratelimit](https://github.com/upstash/ratelimit-js)
 - Node.js: It has first-class support for [Node Redis](https://github.com/redis/node-redis)
 - Deno: Use the node adapter
@@ -59,7 +59,7 @@ import { RedisClient, type BunRequest } from "bun";
 const ratelimit = new HummnRatelimit({
   redis: new RedisClient('redis://localhost:6379'),
   // fixedWindow and slidingWindow also supported.
-  limiter: Ratelimit.tokenBucket(10, "20 s", 100), 
+  limiter: Ratelimit.tokenBucket(10, "20 s", 100),
   prefix: "@hummn/ratelimit",
 });
 
@@ -77,7 +77,7 @@ Bun.serve({
         // Set Headers
         return new Response("Woah! please slow down...", {status: 429})
       }
-          
+
       return Response.json({ orgId, repoId });
     },
   },
