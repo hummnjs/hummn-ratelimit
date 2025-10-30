@@ -321,7 +321,8 @@ export class Ratelimit extends BaseRatelimit<RedisClient> {
       return await redis.send("EVALSHA", [script.hash, ...args]);
     } catch (error) {
       if (`${error}`.toLowerCase().includes("noscript")) {
-        return await redis.send("SCRIPT", ["LOAD", script.script]);
+        await redis.send("SCRIPT", ["LOAD", script.script]);
+        return await redis.send("EVALSHA", [script.hash, ...args]);
       }
       throw error;
     }
