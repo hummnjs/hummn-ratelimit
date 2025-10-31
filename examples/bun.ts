@@ -3,7 +3,7 @@ import { Ratelimit } from "../src/bun";
 
 async function main() {
   const l = new Ratelimit({
-    limiter: Ratelimit.tokenBucket(2, "1m", 10),
+    limiter: Ratelimit.tokenBucket(1, "1m", 10),
     redis: new RedisClient(),
   });
 

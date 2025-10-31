@@ -263,7 +263,7 @@ export class Ratelimit extends BaseRatelimit<RedisClient> {
           String(incrementBy)
         )) as [number, number];
 
-        const success = remaining >= 0;
+        const success = remaining > 0;
 
         return {
           success,
